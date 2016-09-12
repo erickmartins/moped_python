@@ -5,16 +5,20 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
+mean_energy=760
+var_energy=50
+mean_recovery=225
+var_recovery=15
 
-
-class cyclist(Agent):
+class Cyclist(Agent):
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.neighborhood=[]
         self.speed=0.0
         self.draft_coefficient=0.0
-        self.energy_left=0.0
+        self.energy_left=random.gauss(mean_energy,var_energy)
+        self.recovery=random.gauss(mean_recovery,var_recovery)
         self.active=False
         self.x_acc=0.0
         self.y_acc=0.0
@@ -30,7 +34,7 @@ class cyclist(Agent):
         return self.neighborhood
 
 
-class race(Model):
+class Race(Model):
     """A model with some number of agents."""
     def __init__(self, N, width, height):
         self.num_agents = N
@@ -40,7 +44,7 @@ class race(Model):
 
         # Create agents
         for i in range(self.num_agents):
-            a = cyclist(i, self)
+            a = Cyclist(i, self)
             self.schedule.add(a)
             # Add the agent to a random grid cell
             x = random.uniform(0,self.space.width)
@@ -52,9 +56,9 @@ class race(Model):
     def step(self):
         self.schedule.step()
 
+number_cyclists=100
 
-
-model=race(100,10,10)
+model=Race(number_cyclists,10,10)
 
 positions=[]
 peloton_speed=2.0
@@ -63,7 +67,7 @@ for cy in model.schedule.agents:
     cy.speed=peloton_speed
 x,y = zip(*positions)
 print(model.schedule.agents[0].speed)
-t = np.arange(100)
+t = np.arange(number_cyclists)
 plt.axhspan(3.,7.,facecolor='0.4',alpha=.5)
 
 plt.scatter(x,y,c=t,marker=">")
