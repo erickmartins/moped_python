@@ -9,6 +9,33 @@ mean_energy=760
 var_energy=50
 mean_recovery=225
 var_recovery=15
+active_cyclists=10
+timesteps=10000
+
+
+def look_for_draft(cyclists):
+    count=0
+    for cy in cyclists:
+        rem_cyclist=cyclists[:count]+cyclists[count+1:]
+        currdraft=calculate_draft(rem_cyclist,cy.xpos,cy.ypos)
+        abovedraft=calculate_draft(rem_cyclist,cy.xpos,cy.ypos + 0.2)
+        belowdraft=calculate_draft(rem_cyclist,cy.xpos,cy.ypos - 0.2)
+        if abovedraft>currdraft:
+            if belowdraft<currdraft:
+                cy.yacc=belowdraft-currdraft
+        else:
+            if belowdraft>currdraft:
+                cy.yacc=abovedraft-currdraft
+            else:
+                cy.yacc=abovedraft-belowdraft
+
+
+        count=count+1
+
+
+def calculate_draft(cyclists,xpos,ypos):
+    
+
 
 class Cyclist(Agent):
 
@@ -54,7 +81,16 @@ class Race(Model):
 
 
     def step(self):
+
+        calculate_position()
+        look_for_draft()
+        set_speeds()
+        calculate_energy()
+        move()
+        update_plot()
         self.schedule.step()
+
+
 
 number_cyclists=100
 
@@ -66,10 +102,20 @@ for cy in model.schedule.agents:
     positions.append(cy.pos)
     cy.speed=peloton_speed
 x,y = zip(*positions)
-print(model.schedule.agents[0].speed)
-t = np.arange(number_cyclists)
-plt.axhspan(3.,7.,facecolor='0.4',alpha=.5)
+t = np.zeros(number_cyclists)
+# print(model.schedule.agents[0].speed)
+for i in range(active_cyclists):
+    cy=model.schedule.agents[i]
+    cy.active=True
+    t[i]=1
 
-plt.scatter(x,y,c=t,marker=">")
+# print (t)
+plt.axhspan(3.,7.,facecolor='0.2',alpha=.1)
+
+plt.scatter(x,y,c=t,marker=">",s=80,cmap=plt.cm.cool)
 plt.axis([0,10,0,10])
+# plt.colorbar()
 plt.show()
+
+for i in range(timesteps):
+    model.step()
